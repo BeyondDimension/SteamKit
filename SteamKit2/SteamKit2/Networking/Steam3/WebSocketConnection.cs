@@ -6,12 +6,15 @@ namespace SteamKit2
 {
     partial class WebSocketConnection : IConnection
     {
-        public WebSocketConnection(ILogContext log)
+        public WebSocketConnection(ILogContext log, WebProxy? webProxy = null)
         {
             this.log = log ?? throw new ArgumentNullException( nameof( log ) );
+            this.webProxy = webProxy;
         }
 
         readonly ILogContext log;
+
+        readonly WebProxy? webProxy;
 
         WebSocketContext? currentContext;
 

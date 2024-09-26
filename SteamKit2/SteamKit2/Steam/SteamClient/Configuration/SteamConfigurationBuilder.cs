@@ -5,6 +5,7 @@
 
 
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using SteamKit2.Discovery;
@@ -113,6 +114,12 @@ namespace SteamKit2
         public ISteamConfigurationBuilder WithWebAPIKey(string webApiKey)
         {
             state.WebAPIKey = webApiKey ?? throw new ArgumentNullException(nameof(webApiKey));
+            return this;
+        }
+
+        public ISteamConfigurationBuilder WithConnectWebProxy(WebProxy webProxy)
+        {
+            state.ConnectionWebProxy = webProxy ?? throw new ArgumentNullException( nameof( webProxy ) );
             return this;
         }
 

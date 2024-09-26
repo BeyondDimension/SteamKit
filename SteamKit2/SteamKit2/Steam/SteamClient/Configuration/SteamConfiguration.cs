@@ -5,6 +5,7 @@
 
 
 using System;
+using System.Net;
 using System.Net.Http;
 using SteamKit2.Discovery;
 
@@ -116,5 +117,10 @@ namespace SteamKit2
         /// If this configuration is used by multiple <see cref="SteamClient"/> instances, they all share the server list.
         /// </summary>
         public SmartCMServerList ServerList { get; }
+
+        /// <summary>
+        /// 连接的代理地址，暂时只支持 WebSocket
+        /// </summary>
+        public WebProxy ConnectionWebProxy => state.ConnectionWebProxy;
     }
 }

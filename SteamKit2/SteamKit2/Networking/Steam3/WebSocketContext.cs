@@ -20,6 +20,10 @@ namespace SteamKit2
 
                 cts = new CancellationTokenSource();
                 socket = new ClientWebSocket();
+
+                if (connection.webProxy is not null)
+                    socket.Options.Proxy = connection.webProxy;
+                
                 connectionUri = ConstructUri(endPoint);
             }
 
