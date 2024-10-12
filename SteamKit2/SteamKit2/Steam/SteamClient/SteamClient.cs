@@ -40,6 +40,11 @@ namespace SteamKit2
         public SteamAuthentication Authentication => _authentication ??= new SteamAuthentication( this );
 
         /// <summary>
+        /// 最后接收到的数据包时间
+        /// </summary>
+        public DateTimeOffset LastPacketReceived { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="SteamClient"/> class with the default configuration.
         /// </summary>
         public SteamClient()
@@ -277,6 +282,8 @@ namespace SteamKit2
             {
                 return false;
             }
+
+            LastPacketReceived = DateTimeOffset.UtcNow;
 
             ArgumentNullException.ThrowIfNull( packetMsg );
 
