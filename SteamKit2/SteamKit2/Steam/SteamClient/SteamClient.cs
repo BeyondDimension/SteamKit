@@ -28,7 +28,7 @@ namespace SteamKit2
         long currentJobId = 0;
         DateTime processStartTime;
 
-        BufferBlock<ICallbackMsg> callbackQueue = new();
+        BufferBlock<CallbackMsg> callbackQueue = new();
 
         internal AsyncJobManager jobManager;
 
@@ -85,7 +85,7 @@ namespace SteamKit2
             HardwareUtils.Init( configuration.MachineInfoProvider );
 
             // add this library's handlers
-            const int HANDLERS_COUNT = 14; // this number should match the amount of AddHandlerCore calls below
+            const int HANDLERS_COUNT = 15; // this number should match the amount of AddHandlerCore calls below
             this.handlers = new( HANDLERS_COUNT );
 
             // notice: SteamFriends should be added before SteamUser due to AccountInfoCallback
@@ -103,6 +103,7 @@ namespace SteamKit2
             this.AddHandlerCore( new SteamMatchmaking() );
             this.AddHandlerCore( new SteamNetworking() );
             this.AddHandlerCore( new SteamContent() );
+            this.AddHandlerCore( new SteamAuthTicket() );
 
             Debug.Assert( this.handlers.Count == HANDLERS_COUNT );
 
@@ -187,7 +188,7 @@ namespace SteamKit2
         /// Gets the next callback object in the queue, and removes it.
         /// </summary>
         /// <returns>The next callback in the queue, or null if no callback is waiting.</returns>
-        public ICallbackMsg? GetCallback()
+        public CallbackMsg? GetCallback()
         {
             if ( callbackQueue.TryReceive( out var msg ) )
             {
@@ -200,7 +201,7 @@ namespace SteamKit2
         /// Blocks the calling thread until a callback object is posted to the queue, and removes it.
         /// </summary>
         /// <returns>The callback object from the queue.</returns>
-        public ICallbackMsg WaitForCallback()
+        public CallbackMsg WaitForCallback()
         {
             return callbackQueue.Receive();
         }
@@ -209,7 +210,7 @@ namespace SteamKit2
         /// Asynchronously awaits until a callback object is posted to the queue, and removes it.
         /// </summary>
         /// <returns>The callback object from the queue.</returns>
-        public Task<ICallbackMsg> WaitForCallbackAsync( CancellationToken cancellationToken = default )
+        public Task<CallbackMsg> WaitForCallbackAsync( CancellationToken cancellationToken = default )
         {
             return callbackQueue.ReceiveAsync( cancellationToken );
         }
@@ -219,7 +220,7 @@ namespace SteamKit2
         /// </summary>
         /// <param name="timeout">The length of time to block.</param>
         /// <returns>A callback object from the queue if a callback has been posted, or null if the timeout has elapsed.</returns>
-        public ICallbackMsg? WaitForCallback( TimeSpan timeout )
+        public CallbackMsg? WaitForCallback( TimeSpan timeout )
         {
             try
             {
@@ -290,10 +291,6 @@ namespace SteamKit2
             // we want to handle some of the clientmsgs before we pass them along to registered handlers
             switch ( packetMsg.MsgType )
             {
-                case EMsg.ClientCMList:
-                    HandleCMList( packetMsg );
-                    break;
-
                 case EMsg.JobHeartbeat:
                     HandleJobHeartbeat( packetMsg );
                     break;
@@ -358,13 +355,6 @@ namespace SteamKit2
         void ClearHandlerCaches()
         {
             GetHandler<SteamMatchmaking>()?.ClearLobbyCache();
-        }
-
-        void HandleCMList( IPacketMsg packetMsg )
-        {
-            var cmMsg = new ClientMsgProtobuf<CMsgClientCMList>( packetMsg );
-
-            PostCallback( new CMListCallback( cmMsg.Body ) );
         }
 
         void HandleJobHeartbeat( IPacketMsg packetMsg )

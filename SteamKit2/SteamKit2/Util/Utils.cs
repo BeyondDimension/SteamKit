@@ -7,7 +7,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace SteamKit2
@@ -141,17 +140,12 @@ namespace SteamKit2
                     21 => EOSType.MacOS12, // Monterey
                     22 => EOSType.MacOS13, // Ventura
                     23 => EOSType.MacOS14, // Sonoma
+                    24 => EOSType.MacOS15, // Sequoia
                     _ => EOSType.MacOSUnknown,
                 },
 
                 _ => EOSType.Unknown,
             };
-        }
-
-        public static T[] GetAttributes<T>( this Type type, bool inherit = false )
-            where T : Attribute
-        {
-            return (T[])type.GetTypeInfo().GetCustomAttributes( typeof( T ), inherit );
         }
     }
 }
