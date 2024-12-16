@@ -9,7 +9,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -378,10 +377,6 @@ namespace SteamKit2.Internal
                     HandleServerUnavailable( packetMsg );
                     break;
 
-                case EMsg.ClientCMList:
-                    HandleCMList( packetMsg );
-                    break;
-
                 case EMsg.ClientSessionToken: // am session token
                     HandleSessionToken( packetMsg );
                     break;
@@ -429,6 +424,10 @@ namespace SteamKit2.Internal
         {
             OnClientMsgReceived( GetPacketMsg( e.Data, this ) );
         }
+
+#if DEBUG
+        internal void ReceiveTestPacketMsg( IPacketMsg packetMsg ) => OnClientMsgReceived( packetMsg );
+#endif
 
         void Connected( object? sender, EventArgs e )
         {
@@ -627,19 +626,6 @@ namespace SteamKit2.Internal
             Disconnect( userInitiated: false );
         }
 
-        void HandleCMList( IPacketMsg packetMsg )
-        {
-            var cmMsg = new ClientMsgProtobuf<CMsgClientCMList>( packetMsg );
-            DebugLog.Assert( cmMsg.Body.cm_addresses.Count == cmMsg.Body.cm_ports.Count, "CMClient", "HandleCMList received malformed message" );
-
-            var cmList = cmMsg.Body.cm_addresses
-                .Zip( cmMsg.Body.cm_ports, ( addr, port ) => ServerRecord.CreateSocketServer( new IPEndPoint( NetHelpers.GetIPAddress( addr ), ( int )port ) ) );
-
-            var webSocketList = cmMsg.Body.cm_websocket_addresses.Select( addr => ServerRecord.CreateWebSocketServer( addr ) );
-
-            // update our list with steam's list of CMs
-            Servers.ReplaceList( cmList.Concat( webSocketList ) );
-        }
         void HandleSessionToken( IPacketMsg packetMsg )
         {
             var sessToken = new ClientMsgProtobuf<CMsgClientSessionToken>( packetMsg );
